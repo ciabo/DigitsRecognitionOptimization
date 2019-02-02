@@ -1,11 +1,20 @@
 import matplotlib.pyplot as plt
+from time import sleep
+import sys
 
 # keras imports for the dataset and building our neural network
 from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation
-
+from keras.callbacks import Callback
+from keras import backend as K
 from keras import optimizers
+
+
+class AdamLearningRateTracker(Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        lr = float(K.get_value(self.model.optimizer.lr))
+        print("Learning rate:", "%.4f" % lr)
 
 
 def plot_history(history):
@@ -75,11 +84,11 @@ model.add(Dense(10))
 model.add(Activation('softmax'))
 
 # to change learning rate
+# opt = optimizers.SGD(lr=0.1)
 opt = optimizers.Adam(lr=0.001)
 model.compile(optimizer=opt,
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
-
 # model.compile(optimizer='adam',
 #              loss='sparse_categorical_crossentropy',
 #              metrics=['accuracy'])
@@ -87,7 +96,7 @@ model.compile(optimizer=opt,
 
 # training the model and saving metrics in history
 epochs = 5
-history = model.fit(x_train, y_train, epochs=epochs, verbose=2)
+history = model.fit(x_train, y_train, epochs=epochs, verbose=2, callbacks=[AdamLearningRateTracker()])
 print(model.evaluate(x_test, y_test))  # return loss and precision
 
 plot_history(history)
