@@ -11,7 +11,7 @@ from keras import backend as K
 from keras import optimizers
 
 
-class AdamLearningRateTracker(Callback):
+class learningRateTracker(Callback):
     def on_epoch_end(self, epoch, logs=None):
         lr = float(K.get_value(self.model.optimizer.lr))
         print("Learning rate:", "%.4f" % lr)
@@ -96,7 +96,7 @@ model.compile(optimizer=opt,
 
 # training the model and saving metrics in history
 epochs = 5
-history = model.fit(x_train, y_train, epochs=epochs, verbose=2, callbacks=[AdamLearningRateTracker()])
+history = model.fit(x_train, y_train, epochs=epochs, verbose=2, callbacks=[learningRateTracker()])
 print(model.evaluate(x_test, y_test))  # return loss and precision
 
 plot_history(history)
