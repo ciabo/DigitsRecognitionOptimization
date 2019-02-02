@@ -1,5 +1,11 @@
-import tensorflow as tf
 import matplotlib.pyplot as plt
+
+# keras imports for the dataset and building our neural network
+from keras.datasets import mnist
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout, Activation
+
+from keras import optimizers
 
 
 def plot_history(history):
@@ -7,7 +13,6 @@ def plot_history(history):
     val_loss_list = [s for s in history.history.keys() if 'loss' in s and 'val' in s]
     acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' not in s]
     val_acc_list = [s for s in history.history.keys() if 'acc' in s and 'val' in s]
-    learning_rate = history.hystory['lr']
 
     if len(loss_list) == 0:
         print('Loss is missing in history')
@@ -46,26 +51,43 @@ def plot_history(history):
     plt.show()
 
 
-# Load and prepare the MNIST dataset. Convert the samples from integers to floating-point numbers:
-mnist = tf.keras.datasets.mnist
-
+# Load and prepare the MNIST dataset
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# building the input vector from the 28x28 pixels
+x_train = x_train.reshape(60000, 784)
+x_test = x_test.reshape(10000, 784)
+x_train = x_train.astype('float32')
+x_test = x_test.astype('float32')
 x_train, x_test = x_train / 255.0, x_test / 255.0
 
-# Build the tf.keras model by stacking layers. Select an optimizer and loss function used for training:
-model = tf.keras.models.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28, 28)),
-    tf.keras.layers.Dense(512, activation=tf.nn.relu),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(10, activation=tf.nn.softmax)
-])
+# building a linear stack of layers with the sequential model
+model = Sequential()
+model.add(Dense(512, input_shape=(784,)))
+model.add(Activation('relu'))
+model.add(Dropout(0.2))
 
-model.compile(optimizer='adam',
+model.add(Dense(512))
+model.add(Activation('relu'))
+model.add(Dropout(0.2))
+
+model.add(Dense(10))
+model.add(Activation('softmax'))
+
+# to change learning rate
+opt = optimizers.Adam(lr=0.001)
+model.compile(optimizer=opt,
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-# Train and evaluate model:
-history = model.fit(x_train, y_train, epochs=5)
+# model.compile(optimizer='adam',
+#              loss='sparse_categorical_crossentropy',
+#              metrics=['accuracy'])
+
+
+# training the model and saving metrics in history
+epochs = 5
+history = model.fit(x_train, y_train, epochs=epochs, verbose=2)
 print(model.evaluate(x_test, y_test))  # return loss and precision
 
 plot_history(history)
