@@ -30,10 +30,18 @@ class RBF():
 
     def newxGivenf(self,fvalue):
         xcap=0 #value we want to minimize
-
         np.power(fvalue-self.s(xcap) , 2)*self.g(xcap)
+
     def g(self,xcap):
         a=np.linalg.det(self.phi)
+        phivec=np.zeros((1,self.X.size),dtype=float)
+        for i in range(0,self.X.size):
+            phivec[0][i] = self.gaussian(xcap,self.X[i])
+        mat=np.c_[self.phi,np.transpose(phivec)]
+        v=np.c_[phivec,0]
+        matrix=np.r_[mat,v]
+        b=np.linalg.det(matrix)
+        return np.divide(a,b)
 
     def s(self,xcap):
         for i in range(0,self.X.size):
