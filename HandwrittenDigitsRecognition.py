@@ -64,17 +64,28 @@ def plot_history(history):
     plt.show()
 
 
-def plot_rbf(x_val, y_val, rbfi):
-    xnew = np.linspace(0.001, 2, 100)
-    fval = rbfi(xnew)
-
-    plt.figure(3)
-    plt.scatter(x_val, y_val, c='r', marker='o')
-    plt.plot(xnew, fval, label="gaussian")
-    plt.title('Rbf interpolation')
-    plt.ylabel('Rbf')
-    plt.legend()
-    plt.show()
+def plot_rbf(x_val, y_val, rbfi, lib=True):
+    xnew = np.linspace(0.001, 2, 100)  # 100 values from 0.001 to 2
+    if lib:
+        fval = rbfi(xnew)
+        plt.figure(3)
+        plt.scatter(x_val, y_val, c='r', marker='o')
+        plt.plot(xnew, fval, label="gaussian")
+        plt.title('Rbf interpolation')
+        plt.ylabel('Rbf')
+        plt.legend()
+        plt.show()
+    else:
+        fval = []
+        for i in range(100):
+            fval.append(rbf.s(xnew[i]))
+        plt.figure(3)
+        plt.scatter(x_val, y_val, c='r', marker='o')
+        plt.plot(xnew, fval, label="gaussian")
+        plt.title('Rbf Ciabo')
+        plt.ylabel('Rbf')
+        plt.legend()
+        plt.show()
 
 
 # Load and prepare the MNIST dataset
@@ -108,11 +119,10 @@ with open("model.json", "w") as json_file:
 model.save_weights("model.h5")
 print("Saved model to disk")
 
-'''
-#finds first three results
-startersPoints=np.array([])
-starterValues=np.array([])
-for i in range(0,3):
+# finds first three results
+startersPoints = np.array([])
+starterValues = np.array([])
+for i in range(0, 2):
     # load json and create model in this way we will use always the same model and weights
     json_file = open('model.json', 'r')
     loaded_model_json = json_file.read()
@@ -122,38 +132,31 @@ for i in range(0,3):
     loaded_model.load_weights("model.h5")
     print("Loaded model from disk")
 
+    learning_rate = random.uniform(0.001, 2)
+    startersPoints = np.append(startersPoints, learning_rate)
 
-    learning_rate=random.uniform(0.001,2)
-    startersPoints= np.append(startersPoints,learning_rate)
-
-    opt = optimizers.Adam(lr=learning_rate) #default decay=0
+    opt = optimizers.Adam(lr=learning_rate)  # default decay=0
     loaded_model.compile(optimizer=opt,
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
+                         loss='sparse_categorical_crossentropy',
+                         metrics=['accuracy'])
     # training the model and saving metrics in history
-    epochs = 5
+    epochs = 3
     history = loaded_model.fit(x_train, y_train, epochs=epochs, verbose=2, callbacks=[learningRateTracker()])
 
-    results=loaded_model.evaluate(x_test, y_test)  # return loss and precision
-    print(results)
+    results = loaded_model.evaluate(x_test, y_test)  # return loss and precision
+    print("Loss, precision: ", results)
 
-    starterValues=np.append(starterValues,results[0])
-    plot_history(history)
+    starterValues = np.append(starterValues, results[0])
+    # plot_history(history)
 
-print(startersPoints)
-print(starterValues)
-#THIS IS SHIT
-#Non si possono avere i moltiplicatori delle funzioni di base e quindi non si puà minimizzare la bumpiness
-#Credo che l'unica soluzione sia fare tutto a mano
-#Anche facendo così poi c'è da minimizzare la bumpiness
-# ==> siamo nella merda
-rbfi=interpolate.Rbf(startersPoints,starterValues,function="gaussian")
-'''
-x = np.array([2,3,5,])
-f = np.array([0.2,0.8,0.5])
-rbfi=interpolate.Rbf(x,f,function="gaussian")
-rbf=r.RBF(x,f)
+print("Learning rate: ", startersPoints)
+print("Loss value: ", starterValues)
+
+x = np.array([2, 3, 5])
+f = np.array([0.2, 0.8, 0.5])
+rbfi = interpolate.Rbf(startersPoints, starterValues, function="gaussian")
+rbf = r.RBF(startersPoints, starterValues)
 rbf.interpolate()
-lambd=rbf.getMultipliers()
-print(lambd)
-a=rbf.g(2)
+lambd = rbf.getMultipliers()
+plot_rbf(startersPoints, starterValues, rbfi, True)
+plot_rbf(startersPoints, starterValues, rbf, False)
