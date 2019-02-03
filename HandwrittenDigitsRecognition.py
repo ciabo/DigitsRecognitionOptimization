@@ -18,7 +18,7 @@ from keras.models import model_from_json
 class learningRateTracker(Callback):
     def on_epoch_end(self, epoch, logs=None):
         lr = float(K.get_value(self.model.optimizer.lr))
-        print("Learning rate:", "%.4f" % lr)
+        # print("Learning rate:", "%.4f" % lr)
 
 
 def plot_history(history):
@@ -88,8 +88,7 @@ def plot_rbf(x_val, y_val, rbfi, lib=True):
         plt.show()
 
 
-
-def evaluate(learning_rate,x_train, y_train, x_test, y_test):
+def evaluate(learning_rate, x_train, y_train, x_test, y_test):
     # load json and create model in this way we will use always the same model and weights
     json_file = open('model.json', 'r')
     loaded_model_json = json_file.read()
@@ -98,7 +97,6 @@ def evaluate(learning_rate,x_train, y_train, x_test, y_test):
     # load weights into new model
     loaded_model.load_weights("model.h5")
     print("Loaded model from disk")
-
     opt = optimizers.Adam(lr=learning_rate)  # default decay=0
     loaded_model.compile(optimizer=opt,
                          loss='sparse_categorical_crossentropy',
@@ -145,27 +143,26 @@ model.save_weights("model.h5")
 print("Saved model to disk")
 
 # finds first three results
-points = np.array([random.uniform(0.001, 2),random.uniform(0.001, 2),random.uniform(0.001, 2)])
+points = np.array([random.uniform(0.001, 2), random.uniform(0.001, 2), random.uniform(0.001, 2)])
 values = np.array([])
-for i in range(0,points.size):
-    values=np.append(values,evaluate(points[i],x_train, y_train, x_test, y_test))
+for i in range(0, points.size):
+    values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
 
 print("Learning rate: ", points)
 print("Loss value: ", values)
 
-for i in range(0,10):
+for i in range(0, 5):
     rbf = r.RBF(points, values)
     rbf.interpolate()
-    newx=rbf.newxGivenf(0)
-    points=np.append(points,newx)
-    newf=evaluate(newx,x_train, y_train, x_test, y_test)
-    values=np.append(values,newf)
+    newx = rbf.newxGivenf(0)
+    points = np.append(points, newx)
+    newf = evaluate(newx, x_train, y_train, x_test, y_test)
+    values = np.append(values, newf)
 
 maxIndex = np.where(values == np.amax(values))
-bestLearningRate=points[maxIndex]
+bestLearningRate = points[maxIndex]
 print("Best Learning rate found : ", bestLearningRate)
 print("Loss value: ", values[maxIndex])
-
 
 '''
 x = np.array([0.3, 1.4, 2])
@@ -181,5 +178,3 @@ print(rbf.g(1))
 v=rbf.newxGivenf(0)
 print("aaaaaaaaaaaaaaa: ",v)
 '''
-
-
