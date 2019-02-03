@@ -87,7 +87,7 @@ def plot_rbf(x_val, y_val, rbfi, lib=True):
         plt.legend()
         plt.show()
 
-
+'''
 # Load and prepare the MNIST dataset
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
@@ -151,12 +151,15 @@ for i in range(0, 2):
 
 print("Learning rate: ", startersPoints)
 print("Loss value: ", starterValues)
+'''
 
-x = np.array([2, 3, 5])
-f = np.array([0.2, 0.8, 0.5])
-rbfi = interpolate.Rbf(startersPoints, starterValues, function="gaussian")
-rbf = r.RBF(startersPoints, starterValues)
+x = np.array([0.3, 1.4, 2])
+f = np.array([2.3, 14.1, 13.3])
+rbfi = interpolate.Rbf(x, f, function="gaussian")
+rbf = r.RBF(x, f)
 rbf.interpolate()
 lambd = rbf.getMultipliers()
-plot_rbf(startersPoints, starterValues, rbfi, True)
-plot_rbf(startersPoints, starterValues, rbf, False)
+print(rbf.g(0))
+print(rbf.g(1))
+plot_rbf(x, f, rbfi, True)
+plot_rbf(x, f, rbf, False)

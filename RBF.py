@@ -44,6 +44,8 @@ class RBF():
         return np.divide(a,b)
 
     def s(self,xcap):
+        sxcap=0
+        
         for i in range(0,self.X.size):
-            sxcap=self.multipliers[i]*self.gaussian(xcap,self.X[i])
+            sxcap=sxcap+self.multipliers[i]*self.gaussian(xcap,self.X[i])
         return sxcap
