@@ -3,6 +3,8 @@ from time import sleep
 import sys
 from scipy import interpolate
 import random
+import numpy as np
+import RBF as r
 
 # keras imports for the dataset and building our neural network
 from keras.datasets import mnist
@@ -101,10 +103,10 @@ with open("model.json", "w") as json_file:
 # serialize weights to HDF5
 model.save_weights("model.h5")
 print("Saved model to disk")
-
+'''
 #finds first three results
-startersPoints=[]
-starterValues=[]
+startersPoints=np.array([])
+starterValues=np.array([])
 for i in range(0,3):
     # load json and create model in this way we will use always the same model and weights
     json_file = open('model.json', 'r')
@@ -117,7 +119,7 @@ for i in range(0,3):
 
 
     learning_rate=random.uniform(0.001,2)
-    startersPoints.append(learning_rate)
+    startersPoints= np.append(startersPoints,learning_rate)
 
     opt = optimizers.Adam(lr=learning_rate) #default decay=0
     loaded_model.compile(optimizer=opt,
@@ -130,7 +132,7 @@ for i in range(0,3):
     results=loaded_model.evaluate(x_test, y_test)  # return loss and precision
     print(results)
 
-    starterValues.append(results[0])
+    starterValues=np.append(starterValues,results[0])
     plot_history(history)
 
 print(startersPoints)
@@ -141,4 +143,11 @@ print(starterValues)
 #Anche facendo così poi c'è da minimizzare la bumpiness
 # ==> siamo nella merda
 rbfi=interpolate.Rbf(startersPoints,starterValues,function="gaussian")
-
+'''
+x = np.array([2,3,5,])
+f = np.array([0.2,0.8,0.5])
+rbfi=interpolate.Rbf(x,f,function="gaussian")
+rbf=r.RBF(x,f)
+rbf.interpolate()
+lambd=rbf.getMultipliers()
+print(lambd)
