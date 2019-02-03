@@ -87,7 +87,32 @@ def plot_rbf(x_val, y_val, rbfi, lib=True):
         plt.legend()
         plt.show()
 
-'''
+
+
+def evaluate(learning_rate,x_train, y_train, x_test, y_test):
+    # load json and create model in this way we will use always the same model and weights
+    json_file = open('model.json', 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
+    # load weights into new model
+    loaded_model.load_weights("model.h5")
+    print("Loaded model from disk")
+
+    opt = optimizers.Adam(lr=learning_rate)  # default decay=0
+    loaded_model.compile(optimizer=opt,
+                         loss='sparse_categorical_crossentropy',
+                         metrics=['accuracy'])
+    # training the model and saving metrics in history
+    epochs = 3
+    history = loaded_model.fit(x_train, y_train, epochs=epochs, verbose=2, callbacks=[learningRateTracker()])
+
+    results = loaded_model.evaluate(x_test, y_test)  # return loss and precision
+    print("Loss, precision: ", results)
+
+    return results[0]
+
+
 # Load and prepare the MNIST dataset
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
@@ -120,39 +145,29 @@ model.save_weights("model.h5")
 print("Saved model to disk")
 
 # finds first three results
-startersPoints = np.array([])
-starterValues = np.array([])
-for i in range(0, 2):
-    # load json and create model in this way we will use always the same model and weights
-    json_file = open('model.json', 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    loaded_model = model_from_json(loaded_model_json)
-    # load weights into new model
-    loaded_model.load_weights("model.h5")
-    print("Loaded model from disk")
+points = np.array([random.uniform(0.001, 2),random.uniform(0.001, 2),random.uniform(0.001, 2)])
+values = np.array([])
+for i in range(0,points.size):
+    values=np.append(values,evaluate(points[i],x_train, y_train, x_test, y_test))
 
-    learning_rate = random.uniform(0.001, 2)
-    startersPoints = np.append(startersPoints, learning_rate)
+print("Learning rate: ", points)
+print("Loss value: ", values)
 
-    opt = optimizers.Adam(lr=learning_rate)  # default decay=0
-    loaded_model.compile(optimizer=opt,
-                         loss='sparse_categorical_crossentropy',
-                         metrics=['accuracy'])
-    # training the model and saving metrics in history
-    epochs = 3
-    history = loaded_model.fit(x_train, y_train, epochs=epochs, verbose=2, callbacks=[learningRateTracker()])
+for i in range(0,10):
+    rbf = r.RBF(points, values)
+    rbf.interpolate()
+    newx=rbf.newxGivenf(0)
+    points=np.append(points,newx)
+    newf=evaluate(newx,x_train, y_train, x_test, y_test)
+    values=np.append(values,newf)
 
-    results = loaded_model.evaluate(x_test, y_test)  # return loss and precision
-    print("Loss, precision: ", results)
+maxIndex = np.where(values == np.amax(values))
+bestLearningRate=points[maxIndex]
+print("Best Learning rate found : ", bestLearningRate)
+print("Loss value: ", values[maxIndex])
 
-    starterValues = np.append(starterValues, results[0])
-    # plot_history(history)
 
-print("Learning rate: ", startersPoints)
-print("Loss value: ", starterValues)
 '''
-
 x = np.array([0.3, 1.4, 2])
 f = np.array([2.3, 14.1, 13.3])
 rbfi = interpolate.Rbf(x, f, function="gaussian")
@@ -161,5 +176,10 @@ rbf.interpolate()
 lambd = rbf.getMultipliers()
 print(rbf.g(0))
 print(rbf.g(1))
-plot_rbf(x, f, rbfi, True)
-plot_rbf(x, f, rbf, False)
+#plot_rbf(x, f, rbfi, True)
+#plot_rbf(x, f, rbf, False)
+v=rbf.newxGivenf(0)
+print("aaaaaaaaaaaaaaa: ",v)
+'''
+
+

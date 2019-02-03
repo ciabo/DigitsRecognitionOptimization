@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.optimize import minimize
 
 class RBF():
     def __init__(self,X,F):
@@ -28,9 +29,18 @@ class RBF():
     def getMultipliers(self):
         return self.multipliers
 
+
+
     def newxGivenf(self,fvalue):
-        xcap=0 #value we want to minimize
-        np.power(fvalue-self.s(xcap) , 2)*self.g(xcap)
+        x0=1
+        #res = minimize(self.bumpiness, x0, method='BFGS', options = {'disp': True})
+        res = minimize(self.bumpiness, x0, fvalue, method='BFGS')
+        return res
+
+
+
+    def bumpiness(self,xcap,fvalue):
+        return np.power(fvalue-self.s(xcap) , 2)*self.g(xcap)
 
     def g(self,xcap):
         a=np.linalg.det(self.phi)
@@ -45,7 +55,6 @@ class RBF():
 
     def s(self,xcap):
         sxcap=0
-        
         for i in range(0,self.X.size):
             sxcap=sxcap+self.multipliers[i]*self.gaussian(xcap,self.X[i])
         return sxcap
