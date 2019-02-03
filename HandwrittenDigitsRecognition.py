@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 from time import sleep
 import sys
+from scipy import interpolate
+import random
 
 # keras imports for the dataset and building our neural network
 from keras.datasets import mnist
@@ -9,6 +11,7 @@ from keras.layers.core import Dense, Dropout, Activation
 from keras.callbacks import Callback
 from keras import backend as K
 from keras import optimizers
+from keras.models import model_from_json
 
 
 class learningRateTracker(Callback):
@@ -85,18 +88,57 @@ model.add(Activation('softmax'))
 
 # to change learning rate
 # opt = optimizers.SGD(lr=0.1)
-opt = optimizers.Adam(lr=0.001)
-model.compile(optimizer=opt,
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+
 # model.compile(optimizer='adam',
 #              loss='sparse_categorical_crossentropy',
 #              metrics=['accuracy'])
 
 
-# training the model and saving metrics in history
-epochs = 5
-history = model.fit(x_train, y_train, epochs=epochs, verbose=2, callbacks=[learningRateTracker()])
-print(model.evaluate(x_test, y_test))  # return loss and precision
+#exporting the model
+model_json = model.to_json()
+with open("model.json", "w") as json_file:
+    json_file.write(model_json)
+# serialize weights to HDF5
+model.save_weights("model.h5")
+print("Saved model to disk")
 
-plot_history(history)
+#finds first three results
+startersPoints=[]
+starterValues=[]
+for i in range(0,3):
+    # load json and create model in this way we will use always the same model and weights
+    json_file = open('model.json', 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
+    # load weights into new model
+    loaded_model.load_weights("model.h5")
+    print("Loaded model from disk")
+
+
+    learning_rate=random.uniform(0.001,2)
+    startersPoints.append(learning_rate)
+
+    opt = optimizers.Adam(lr=learning_rate) #default decay=0
+    loaded_model.compile(optimizer=opt,
+                  loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
+    # training the model and saving metrics in history
+    epochs = 5
+    history = loaded_model.fit(x_train, y_train, epochs=epochs, verbose=2, callbacks=[learningRateTracker()])
+
+    results=loaded_model.evaluate(x_test, y_test)  # return loss and precision
+    print(results)
+
+    starterValues.append(results[0])
+    plot_history(history)
+
+print(startersPoints)
+print(starterValues)
+#THIS IS SHIT
+#Non si possono avere i moltiplicatori delle funzioni di base e quindi non si puà minimizzare la bumpiness
+#Credo che l'unica soluzione sia fare tutto a mano
+#Anche facendo così poi c'è da minimizzare la bumpiness
+# ==> siamo nella merda
+rbfi=interpolate.Rbf(startersPoints,starterValues,function="gaussian")
+
