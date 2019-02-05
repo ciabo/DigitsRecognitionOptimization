@@ -143,25 +143,24 @@ model.save_weights("model.h5")
 print("Saved model to disk")
 
 # finds first three results
-points = np.array([0.28123927, 0.56774466, 0.96390464, 0., 0.42126412, 0.33617471, 0.11857441, 0.17754029,0.04997985,0.07823837])
-values = np.array([14.53529827, 14.53529827, 14.47082589, 2.34316457, 14.57398165, 14.52240565, 14.57398165, 14.57398165, 14.46115504,14.53852374])
-# for i in range(0, points.size):
-#     values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
+points = np.array([0.03078195,  0.1213984, 0.018049096])
+values = np.array([])
+for i in range(0, points.size):
+     values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
 
 print("Learning rate: ", points)
 print("Loss value: ", values)
 
-for i in range(0, 4):
+for i in range(0, 2):
     rbf = r.RBF(points, values)
     rbf.interpolate()
     if i % 3 == 0:
-        newx = rbf.newxGivenf(-100000)
+        newx = np.power(10,-rbf.newxGivenf(-1000))
     else:
         newx = rbf.newxGivenf(0)
     points = np.append(points, newx)
     newf = evaluate(newx, x_train, y_train, x_test, y_test)
     values = np.append(values, newf)
-    plot_rbf(points, values, rbf, False)
 
 minIndex = np.where(values == np.amin(values))
 bestLearningRate = points[minIndex]

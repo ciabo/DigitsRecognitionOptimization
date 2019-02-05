@@ -4,7 +4,7 @@ from scipy.optimize import NonlinearConstraint
 
 class RBF():
     def __init__(self, X, F):
-        self.X = X
+        self.X = np.absolute(np.log(X))
         self.F = F
         # default epsilon is the "the average distance between nodes" based
         # on a bounding hypercube
@@ -32,9 +32,9 @@ class RBF():
     def newxGivenf(self, fvalue):
         #xcap = np.array([1])
         # res = minimize(self.bumpiness, x0, method='BFGS', options = {'disp': True})
-        points = np.linspace(0.01, 0.99, 99)
+        points = np.linspace(0.3, 10, 1000)
         results=np.array([])
-        bounds = [(0, 1)]
+        bounds = [(0.3, 10)]
 
         for point in points:
             res = minimize(self.bumpiness, point, fvalue, method='L-BFGS-B', bounds=bounds)
