@@ -157,7 +157,7 @@ for i in range(0, 2):
     if i % 3 == 0:
         newx = np.power(10,-rbf.newxGivenf(-1000))
     else:
-        newx = rbf.newxGivenf(0)
+        newx = np.power(10,-rbf.newxGivenf(0))
     points = np.append(points, newx)
     newf = evaluate(newx, x_train, y_train, x_test, y_test)
     values = np.append(values, newf)
