@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
-
+from scipy.optimize import NonlinearConstraint
 
 class RBF():
     def __init__(self, X, F):
@@ -30,11 +30,16 @@ class RBF():
         return self.multipliers
 
     def newxGivenf(self, fvalue):
-        xcap = np.array([1])
+        #xcap = np.array([1])
         # res = minimize(self.bumpiness, x0, method='BFGS', options = {'disp': True})
-        cons = {'type': 'ineq', 'fun': lambda x: x}
-        res = minimize(self.bumpiness, xcap, fvalue, method='SLSQP', constraints=cons)
-        return res.x[0]
+        points = np.linspace(0.01, 0.99, 99)
+        results=np.array([])
+        bounds = [(0, 1)]
+
+        for point in points:
+            res = minimize(self.bumpiness, point, fvalue, method='L-BFGS-B', bounds=bounds)
+            results=np.append(results,res.x[0])
+        return np.amin(results)
 
     def bumpiness(self, xcap, fvalue):
         return np.power(fvalue - self.s(xcap), 2) * self.g(xcap)
@@ -55,3 +60,24 @@ class RBF():
         for i in range(0, self.X.size):
             sxcap = sxcap + self.multipliers[i] * self.gaussian(xcap, self.X[i])
         return sxcap
+
+    '''
+    def newxGivenfComplete(self,fvalue):
+        cons=[]
+        for i in range(0,self.X.size):
+            con={'type':'eq', 'fun': con}
+            cons.append()
+        multipliers = np.ones((1,self.X.size), dtype=float)
+        res = minimize(self.functionToMinimize, multipliers, fvalue, method='SLSQP', constraints=cons)
+        return res.x[0]
+
+    def functionToMinimize(self,multipliers):
+        return np.dot(np.dot(np.transpose(multipliers),self.phi),multipliers)
+
+    def constraint(self,xcap,fvalue):
+        sxcap = 0
+        for i in range(0, self.X.size):
+            sxcap = sxcap + self.multipliers[i] * self.gaussian(xcap, self.X[i])
+        sxcap=sxcap+self.multipliers[i] * self.gaussian(xcap, self.X[i])
+        return sxcap
+    '''
