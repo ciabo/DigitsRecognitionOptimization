@@ -61,6 +61,9 @@ class RBF():
             sxcap = sxcap + self.multipliers[i] * self.gaussian(xcap, self.X[i])
         return sxcap
 
+    def getX(self):
+        return self.X
+
     '''
     def newxGivenfComplete(self,fvalue):
         cons=[]

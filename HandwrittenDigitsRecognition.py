@@ -168,7 +168,7 @@ print("Best Learning rate found : ", bestLearningRate)
 print("Loss value: ", values[minIndex])
 print(points)
 print(values)
-plot_rbf(points, values, rbf, False)
+plot_rbf(rbf.getX(), values, rbf, False)
 '''
 x = np.array([0.3, 1.4, 2])
 f = np.array([2.3, 14.1, 13.3])
