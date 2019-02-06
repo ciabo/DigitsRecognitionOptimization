@@ -1,11 +1,13 @@
 import numpy as np
 from scipy.optimize import minimize
-from scipy.optimize import NonlinearConstraint
+
 
 class RBF():
     def __init__(self, X, F):
         self.X = np.absolute(np.log10(X))
         self.F = F
+        self.multipliers = np.zeros((1, self.X.size))
+        self.phi = np.zeros((self.X.size, self.X.size), dtype=float)
         # default epsilon is the "the average distance between nodes" based
         # on a bounding hypercube
         ximax = np.amax(self.X, axis=0)
@@ -15,11 +17,10 @@ class RBF():
 
     def gaussian(self, xi, yi):
         r = np.sqrt(np.power((xi - yi), 2))  # norm of xi-yi
-        return np.exp(-1.0 / self.epsilon * np.power(r,2))
+        return np.exp(-1.0 / self.epsilon * np.power(r, 2))
 
     def interpolate(self):
         n = self.X.size
-        self.phi = np.zeros((n, n), dtype=float)
         for i in range(0, n):
             for j in range(0, n):
                 v = self.gaussian(self.X[i], self.X[j])
@@ -30,15 +31,16 @@ class RBF():
         return self.multipliers
 
     def newxGivenf(self, fvalue):
-        #xcap = np.array([1])
+        # xcap = np.array([1])
         # res = minimize(self.bumpiness, x0, method='BFGS', options = {'disp': True})
-        points = np.linspace(0.3, 10, 1000)
-        results=np.array([])
-        bounds = [(0.3, 10)]
+        points = np.linspace(1, 10, 50)
+        results = np.array([])
+        bounds = [(1, 5)]
 
         for point in points:
             res = minimize(self.bumpiness, point, fvalue, method='L-BFGS-B', bounds=bounds)
-            results=np.append(results,res.x[0])
+            print(res.x[0], "; ", point)
+            results = np.append(results, res.x[0])
         return np.amin(results)
 
     def bumpiness(self, xcap, fvalue):
