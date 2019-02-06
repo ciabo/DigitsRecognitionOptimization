@@ -4,7 +4,7 @@ from scipy.optimize import NonlinearConstraint
 
 class RBF():
     def __init__(self, X, F):
-        self.X = np.absolute(np.log(X))
+        self.X = np.absolute(np.log10(X))
         self.F = F
         # default epsilon is the "the average distance between nodes" based
         # on a bounding hypercube
@@ -15,7 +15,7 @@ class RBF():
 
     def gaussian(self, xi, yi):
         r = np.sqrt(np.power((xi - yi), 2))  # norm of xi-yi
-        return np.exp(-(1.0 / self.epsilon * r) ** 2)
+        return np.exp(-1.0 / self.epsilon * np.power(r,2))
 
     def interpolate(self):
         n = self.X.size

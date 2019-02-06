@@ -145,20 +145,21 @@ print("Saved model to disk")
 # finds first three results
 points = np.array([0.03078195,  0.1213984, 0.018049096])
 values = np.array([])
-for i in range(0, points.size):
-     values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
+# for i in range(0, points.size):
+#      values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
 
 print("Learning rate: ", points)
 print("Loss value: ", values)
 
-for i in range(0, 2):
+for i in range(0, 3):
     rbf = r.RBF(points, values)
     rbf.interpolate()
     if i % 3 == 0:
         newx = np.power(10,-rbf.newxGivenf(-1000))
     else:
-        newx = np.power(10,-rbf.newxGivenf(0))
+        newx = np.power(10,-rbf.newxGivenf(-1))
     points = np.append(points, newx)
+    print("new learning rate: ", newx)
     newf = evaluate(newx, x_train, y_train, x_test, y_test)
     values = np.append(values, newf)
 
