@@ -65,14 +65,15 @@ def plot_history(history):
 
 
 def plot_rbf(x_val, y_val, rbfi, lib=True):
-    xnew = np.linspace(0.001, 2, 100)  # 100 values from 0.001 to 2
+    xnew = np.linspace(-6, -0.3, 100)  # 100 values from 0.001 to 2
     if lib:
         fval = rbfi(xnew)
         plt.figure(3)
         plt.scatter(x_val, y_val, c='r', marker='o')
         plt.plot(xnew, fval, label="gaussian")
         plt.title('Rbf interpolation')
-        plt.ylabel('Rbf')
+        plt.ylabel('Loss')
+        plt.xlabel('Learning rate')
         plt.legend()
         plt.show()
     else:
@@ -102,7 +103,7 @@ def evaluate(learning_rate, x_train, y_train, x_test, y_test):
                          loss='sparse_categorical_crossentropy',
                          metrics=['accuracy'])
     # training the model and saving metrics in history
-    epochs = 3
+    epochs = 5
     history = loaded_model.fit(x_train, y_train, epochs=epochs, verbose=2, callbacks=[learningRateTracker()])
 
     results = loaded_model.evaluate(x_test, y_test)  # return loss and precision
@@ -111,9 +112,9 @@ def evaluate(learning_rate, x_train, y_train, x_test, y_test):
     return results[0]
 
 
+numberOfIterations = 10
 # Load and prepare the MNIST dataset
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
-
 # building the input vector from the 28x28 pixels
 x_train = x_train.reshape(60000, 784)
 x_test = x_test.reshape(10000, 784)
@@ -143,44 +144,36 @@ model.save_weights("model.h5")
 print("Saved model to disk")
 
 # finds first three results
-points = np.array([0.28123927, 0.56774466, 0.96390464, 0., 0.42126412, 0.33617471, 0.11857441, 0.17754029,0.04997985,0.07823837])
-values = np.array([14.53529827, 14.53529827, 14.47082589, 2.34316457, 14.57398165, 14.52240565, 14.57398165, 14.57398165, 14.46115504,14.53852374])
-# for i in range(0, points.size):
-#     values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
+points = np.array([random.uniform(0.000001, 0.2),random.uniform(0.000001, 0.2), random.uniform(0.000001, 0.2)])
+values = np.array([])
+for i in range(0, points.size):
+    values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
 
 print("Learning rate: ", points)
 print("Loss value: ", values)
+plot = np.copy(np.log10(points))
 
-for i in range(0, 4):
+for i in range(1, numberOfIterations + 1):
     rbf = r.RBF(points, values)
     rbf.interpolate()
     if i % 3 == 0:
-        newx = rbf.newxGivenf(-100000)
+        newx = rbf.newxGivenf(True)
     else:
-        newx = rbf.newxGivenf(0)
-    points = np.append(points, newx)
-    newf = evaluate(newx, x_train, y_train, x_test, y_test)
+        newx = rbf.newxGivenf()
+    # find the new learning rate
+    points = np.append(points, np.power(10, newx))
+    print("new learning rate: ", np.power(10, newx))
+    plot = np.append(plot, newx)
+    # evauate the model with the new learning rate
+    newf = evaluate(np.power(10, -newx), x_train, y_train, x_test, y_test)
     values = np.append(values, newf)
-    plot_rbf(points, values, rbf, False)
 
+rbf = r.RBF(points, values)
+rbf.interpolate()
 minIndex = np.where(values == np.amin(values))
 bestLearningRate = points[minIndex]
 print("Best Learning rate found : ", bestLearningRate)
-print("Loss value: ", values[minIndex])
-print(points)
-print(values)
-plot_rbf(points, values, rbf, False)
-'''
-x = np.array([0.3, 1.4, 2])
-f = np.array([2.3, 14.1, 13.3])
-rbfi = interpolate.Rbf(x, f, function="gaussian")
-rbf = r.RBF(x, f)
-rbf.interpolate()
-lambd = rbf.getMultipliers()
-print(rbf.g(0))
-print(rbf.g(1))
-#plot_rbf(x, f, rbfi, True)
-#plot_rbf(x, f, rbf, False)
-v=rbf.newxGivenf(0)
-print("aaaaaaaaaaaaaaa: ",v)
-'''
+print("Best loss value: ", values[minIndex])
+print("Learning rates: ",points)
+print("Loss: ",values)
+plot_rbf(plot, values, rbf, False)
