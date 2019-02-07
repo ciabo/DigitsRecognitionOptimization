@@ -1,10 +1,10 @@
 import numpy as np
 from scipy.optimize import minimize
-
+import matplotlib.pyplot as plt
 
 class RBF():
     def __init__(self, X, F):
-        self.X = np.absolute(np.log10(X))
+        self.X = np.log10(X)
         self.F = F
         self.multipliers = np.zeros((1, self.X.size))
         self.phi = np.zeros((self.X.size, self.X.size), dtype=float)
@@ -21,32 +21,54 @@ class RBF():
 
     def interpolate(self):
         n = self.X.size
+        # create phi matrix
         for i in range(0, n):
             for j in range(0, n):
                 v = self.gaussian(self.X[i], self.X[j])
                 self.phi[i][j] = v
+        # find multipliers solving the system
         self.multipliers = np.linalg.solve(self.phi, self.F)
 
     def getMultipliers(self):
         return self.multipliers
 
-    def newxGivenf(self, fvalue):
-        # xcap = np.array([1])
-        # res = minimize(self.bumpiness, x0, method='BFGS', options = {'disp': True})
-        points = np.linspace(1, 10, 50)
+    def minimizeInterpolant(self):
+        points = np.linspace(-6, -0.3, 500)
         results = np.array([])
-        bounds = [(1, 5)]
-
+        bounds = [(-6, -0.3)]
         for point in points:
+            # minimize the bumpiness
+            res = minimize(self.s, point, method='L-BFGS-B', bounds=bounds)
+            results = np.append(results, res.fun[0])
+        # return the min value of all the optimization
+        best = np.amin(results)
+        return best-1
+
+
+    def newxGivenf(self, explore=False):
+        fvalue=-100000
+        if explore is False:
+            fvalue=self.minimizeInterpolant()
+        # create points to to start the minimization
+        points = np.linspace(-6, -0.3, 500)
+        results = np.array([])
+        xvalues = np.array([])
+        bounds = [(-6, -0.3)]
+        for point in points:
+            # minimize the bumpiness
             res = minimize(self.bumpiness, point, fvalue, method='L-BFGS-B', bounds=bounds)
-            print(res.x[0], "; ", point)
-            results = np.append(results, res.x[0])
-        return np.amin(results)
+            results = np.append(results, res.fun[0])
+            xvalues = np.append(xvalues, res.x[0])
+        # return the min value of all the optimization
+        bestIndex=np.where(results == np.amin(results))
+        idx=np.take(bestIndex,0,axis=0)[0]
+        return xvalues[idx]
 
     def bumpiness(self, xcap, fvalue):
         return np.power(fvalue - self.s(xcap), 2) * self.g(xcap)
 
     def g(self, xcap):
+        # nominator determinant
         a = np.linalg.det(self.phi)
         phivec = np.zeros((1, self.X.size), dtype=float)
         for i in range(0, self.X.size):
@@ -54,9 +76,11 @@ class RBF():
         mat = np.c_[self.phi, np.transpose(phivec)]
         v = np.c_[phivec, 0]
         matrix = np.r_[mat, v]
+        # denominator determinant
         b = np.linalg.det(matrix)
         return np.divide(a, b)
 
+    # return the value of the interpolant for a given xcap
     def s(self, xcap):
         sxcap = 0
         for i in range(0, self.X.size):
@@ -66,23 +90,14 @@ class RBF():
     def getX(self):
         return self.X
 
-    '''
-    def newxGivenfComplete(self,fvalue):
-        cons=[]
-        for i in range(0,self.X.size):
-            con={'type':'eq', 'fun': con}
-            cons.append()
-        multipliers = np.ones((1,self.X.size), dtype=float)
-        res = minimize(self.functionToMinimize, multipliers, fvalue, method='SLSQP', constraints=cons)
-        return res.x[0]
-
-    def functionToMinimize(self,multipliers):
-        return np.dot(np.dot(np.transpose(multipliers),self.phi),multipliers)
-
-    def constraint(self,xcap,fvalue):
-        sxcap = 0
-        for i in range(0, self.X.size):
-            sxcap = sxcap + self.multipliers[i] * self.gaussian(xcap, self.X[i])
-        sxcap=sxcap+self.multipliers[i] * self.gaussian(xcap, self.X[i])
-        return sxcap
-    '''
+    def plotBumpiness(self):
+        xnew = np.linspace(-6, -0.3, 1000)
+        fval = []
+        for i in range(1000):
+            fval.append(self.bumpiness(xnew[i],0))
+        plt.figure(3)
+        #plt.scatter(self.X, self.F, c='r', marker='o')
+        plt.plot(xnew, fval, label="bumpiness")
+        plt.title('Bumpiness')
+        plt.legend()
+        plt.show()

@@ -110,7 +110,7 @@ def evaluate(learning_rate, x_train, y_train, x_test, y_test):
 
     return results[0]
 
-
+numberOfIterations=5
 # Load and prepare the MNIST dataset
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
@@ -143,28 +143,31 @@ model.save_weights("model.h5")
 print("Saved model to disk")
 
 # finds first three results
-points = np.array([0.03078195, 0.1213984, 0.018049096])
-# values = np.array([14.45470775, 14.68036106, 14.49177939])
-for i in range(0, points.size):
-    values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
+#points = np.array([random.uniform(0.000001, 0.5),random.uniform(0.000001, 0.5),random.uniform(0.000001, 0.5)])
+#values = np.array([])
+points = np.array([0.31875521, 0.01389567, 0.40888019])
+values = np.array([14.57398165,  0.34943883, 14.45470965])
+#for i in range(0, points.size):
+#    values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
 
 print("Learning rate: ", points)
 print("Loss value: ", values)
 plot = np.copy(np.abs(np.log10(points)))
-print(plot)
-for i in range(0, 3):
+
+for i in range(1, numberOfIterations+1):
     rbf = r.RBF(points, values)
     rbf.interpolate()
     if i % 3 == 0:
-        newx = rbf.newxGivenf(-1000)
+        newx = rbf.newxGivenf(True)
     else:
-        newx = rbf.newxGivenf(0)
-    points = np.append(points, np.power(10, -newx))
+        newx = rbf.newxGivenf()
+    #find the new learning rate
+    points = np.append(points, np.power(10, newx))
     plot = np.append(plot, newx)
-    print("new learning rate: ", np.power(10, -newx))
+    print("new learning rate: ", np.power(10, newx))
+    #evauate the model with the new learning rate
     newf = evaluate(np.power(10, -newx), x_train, y_train, x_test, y_test)
     values = np.append(values, newf)
-    plot_rbf(plot, values, rbf, False)
 
 minIndex = np.where(values == np.amin(values))
 bestLearningRate = points[minIndex]
@@ -175,17 +178,3 @@ print(plot)
 print(values)
 plot_rbf(plot, values, rbf, False)
 
-'''
-x = np.array([0.3, 1.4, 2])
-f = np.array([2.3, 14.1, 13.3])
-rbfi = interpolate.Rbf(x, f, function="gaussian")
-rbf = r.RBF(x, f)
-rbf.interpolate()
-lambd = rbf.getMultipliers()
-print(rbf.g(0))
-print(rbf.g(1))
-#plot_rbf(x, f, rbfi, True)
-#plot_rbf(x, f, rbf, False)
-v=rbf.newxGivenf(0)
-print("aaaaaaaaaaaaaaa: ",v)
-'''
