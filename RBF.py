@@ -2,6 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
+
 class RBF():
     def __init__(self, X, F):
         self.X = np.log10(X)
@@ -42,13 +43,12 @@ class RBF():
             results = np.append(results, res.fun[0])
         # return the min value of all the optimization
         best = np.amin(results)
-        return best-1
-
+        return best - 1
 
     def newxGivenf(self, explore=False):
-        fvalue=-100000
+        fvalue = -100000
         if explore is False:
-            fvalue=self.minimizeInterpolant()
+            fvalue = self.minimizeInterpolant()
         # create points to to start the minimization
         points = np.linspace(-6, -0.3, 500)
         results = np.array([])
@@ -60,8 +60,8 @@ class RBF():
             results = np.append(results, res.fun[0])
             xvalues = np.append(xvalues, res.x[0])
         # return the min value of all the optimization
-        bestIndex=np.where(results == np.amin(results))
-        idx=np.take(bestIndex,0,axis=0)[0]
+        bestIndex = np.where(results == np.amin(results))
+        idx = np.take(bestIndex, 0, axis=0)[0]
         return xvalues[idx]
 
     def bumpiness(self, xcap, fvalue):
@@ -94,9 +94,9 @@ class RBF():
         xnew = np.linspace(-6, -0.3, 1000)
         fval = []
         for i in range(1000):
-            fval.append(self.bumpiness(xnew[i],0))
+            fval.append(self.bumpiness(xnew[i], 0))
         plt.figure(3)
-        #plt.scatter(self.X, self.F, c='r', marker='o')
+        # plt.scatter(self.X, self.F, c='r', marker='o')
         plt.plot(xnew, fval, label="bumpiness")
         plt.title('Bumpiness')
         plt.legend()

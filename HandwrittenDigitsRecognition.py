@@ -65,7 +65,7 @@ def plot_history(history):
 
 
 def plot_rbf(x_val, y_val, rbfi, lib=True):
-    xnew = np.linspace(0.001, 2, 100)  # 100 values from 0.001 to 2
+    xnew = np.linspace(-6, 2, 100)  # 100 values from 0.001 to 2
     if lib:
         fval = rbfi(xnew)
         plt.figure(3)
@@ -110,7 +110,8 @@ def evaluate(learning_rate, x_train, y_train, x_test, y_test):
 
     return results[0]
 
-numberOfIterations=5
+
+numberOfIterations = 2
 # Load and prepare the MNIST dataset
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
@@ -143,31 +144,35 @@ model.save_weights("model.h5")
 print("Saved model to disk")
 
 # finds first three results
-points = np.array([random.uniform(0.000001, 0.5),random.uniform(0.000001, 0.5),random.uniform(0.000001, 0.5)])
+points = np.array([random.uniform(0.000001, 0.5), random.uniform(0.000001, 0.5), random.uniform(0.000001, 0.5)])
+# points = np.array([0.21392241, 0.31823125, 0.29391561])
+# values = np.array([14.4901676, 14.46115504, 14.49177939])
 values = np.array([])
-
 for i in range(0, points.size):
     values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
 
 print("Learning rate: ", points)
 print("Loss value: ", values)
-plot = np.copy(np.abs(np.log10(points)))
+plot = np.copy(np.log10(points))
 
-for i in range(1, numberOfIterations+1):
+for i in range(1, numberOfIterations + 1):
     rbf = r.RBF(points, values)
     rbf.interpolate()
     if i % 3 == 0:
         newx = rbf.newxGivenf(True)
     else:
         newx = rbf.newxGivenf()
-    #find the new learning rate
+    # find the new learning rate
     points = np.append(points, np.power(10, newx))
     plot = np.append(plot, newx)
     print("new learning rate: ", np.power(10, newx))
-    #evauate the model with the new learning rate
+    # evauate the model with the new learning rate
     newf = evaluate(np.power(10, -newx), x_train, y_train, x_test, y_test)
     values = np.append(values, newf)
+    plot_rbf(plot, values, rbf, False)
 
+rbf = r.RBF(points, values)
+rbf.interpolate()
 minIndex = np.where(values == np.amin(values))
 bestLearningRate = points[minIndex]
 print("Best Learning rate found : ", bestLearningRate)
@@ -176,4 +181,3 @@ print(points)
 print(plot)
 print(values)
 plot_rbf(plot, values, rbf, False)
-
