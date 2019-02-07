@@ -143,12 +143,11 @@ model.save_weights("model.h5")
 print("Saved model to disk")
 
 # finds first three results
-#points = np.array([random.uniform(0.000001, 0.5),random.uniform(0.000001, 0.5),random.uniform(0.000001, 0.5)])
-#values = np.array([])
-points = np.array([0.31875521, 0.01389567, 0.40888019])
-values = np.array([14.57398165,  0.34943883, 14.45470965])
-#for i in range(0, points.size):
-#    values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
+points = np.array([random.uniform(0.000001, 0.5),random.uniform(0.000001, 0.5),random.uniform(0.000001, 0.5)])
+values = np.array([])
+
+for i in range(0, points.size):
+    values = np.append(values, evaluate(points[i], x_train, y_train, x_test, y_test))
 
 print("Learning rate: ", points)
 print("Loss value: ", values)
